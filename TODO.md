@@ -1,5 +1,12 @@
 # Delivery Checklist
 
+## User-requested playability follow-up
+- [x] Desktop keyboard and mobile touch both move the rendered character; the visible mobile joystick receives touch input directly and releases cleanly on pointer cancellation.
+- [x] A visible sky is rendered above the city rather than relying only on a flat background color.
+- [x] The secured detention center is clearly labeled and has multiple individually named opposing security mobs that use the existing patrol, detection, pursuit, and detention behavior.
+- [x] The game remains playable on PC and mobile, including touch play in portrait and landscape with safe-area-aware controls and no pointer lock on touch devices.
+- Verification: 30 unit tests passed, TypeScript checks passed, GitHub Pages build passed, and the desktop/mobile Playwright smoke suite passed.
+
 ## 1. City, player, movement, camera, and collision
 - [ ] Build a connected, explorable fictional Indian-city environment inspired by the supplied map and city references, not a collection of disconnected rooms. Include narrow streets, wider roads, historic-style buildings, shops/markets, alleys, courtyards, rooftops/terraces/passages where appropriate, industrial areas/warehouses, streetlights, signs, walls, barricades, NPCs, landmarks, patrol routes, alternative routes, skyline, and a distinct final secured zone. Use procedural geometry and documented placeholders only where supplied/approved assets do not cover the role; keep performance appropriate for desktop and mobile.
 - [ ] Implement walk/run/sprint/crouch/jump/turn/interact, stop/resume, stair climbing, collision against buildings, walls, gates, and barricades, floor/edge handling, and valid checkpoint/restart behavior. Do not allow interaction outside its radius, walking through collision, falling through floors, or bypassing the tower staircase.

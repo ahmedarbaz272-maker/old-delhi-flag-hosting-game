@@ -284,6 +284,7 @@ export class Game {
   render(_alpha: number, frameSeconds: number): void {
     this.renderTime += frameSeconds
     const dt = Math.min(Math.max(frameSeconds, 0), 0.05)
+    this.physics.sync(_alpha)
     if (this.mode === 'attract') {
       const angle = this.renderTime * 0.035 + 0.5
       this.camera.camera.position.set(20 + Math.sin(angle) * 62, 31 + Math.sin(this.renderTime * 0.11) * 3, 20 + Math.cos(angle) * 62)

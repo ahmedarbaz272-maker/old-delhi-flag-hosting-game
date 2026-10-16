@@ -522,8 +522,8 @@ body.has-touch .hint.is-active { transform: translate(-50%, 0); }
 .controls-grid kbd { flex-shrink: 0; }
 
 /* Mobile controls share the same input actions; large targets stay clear of safe areas. */
-.touch { display: none; }
-.touch-stick { position: absolute; left: calc(24px + var(--safe-l)); bottom: calc(22px + var(--safe-b)); width: 126px; height: 126px; border: 2px solid rgba(255,255,255,.54); border-radius: 50%; background: rgba(25,31,48,.42); pointer-events: auto; touch-action: none; }
+.touch { display: none; position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.touch-stick { position: absolute; left: calc(24px + var(--safe-l)); bottom: calc(22px + var(--safe-b)); width: 126px; height: 126px; margin: 0; border: 2px solid rgba(255,255,255,.54); border-radius: 50%; background: rgba(25,31,48,.42); opacity: .76; pointer-events: auto; touch-action: none; }
 .touch-stick::before { content: ''; position: absolute; inset: 28px; border: 1px dashed rgba(255,255,255,.35); border-radius: 50%; }
 .touch-stick i { position: absolute; left: 50%; top: 50%; width: 49px; height: 49px; margin: -24.5px; border-radius: 50%; background: rgba(255,192,79,.9); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
 .touch-actions { position: absolute; right: calc(20px + var(--safe-r)); bottom: calc(14px + var(--safe-b)); width: min(40vw,290px); display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; pointer-events: auto; }
@@ -553,7 +553,24 @@ body.has-touch .hint.is-active { transform: translate(-50%, 0); }
   .orientation-warning { display: none; }
 }
 @media (pointer: coarse) and (orientation: portrait) {
-  .orientation-warning { display: block; position: absolute; z-index: 7; inset: 0; display: grid; place-items: center; padding: 32px; text-align: center; background: rgba(17,23,40,.93); font-size: 21px; font-weight: 900; }
+  .orientation-warning { display: none; }
+  .hud-panel > span { display: none; }
+  .hud-panel { gap: 0; padding: 4px 7px; border-width: 2px; }
+  .hud-discovered { padding-left: 5px; font-size: 9px; }
+  .hud-top-right { gap: 4px; }
+  .hud-compass { min-width: 38px; padding: 4px 5px; font-size: 10px; }
+  .hud-compass-arrow { width: 17px; height: 17px; }
+  .detection-meter { width: 78px; padding: 4px; gap: 2px; font-size: 8px; }
+  .detection-meter i { left: 4px; width: calc(100% - 8px); bottom: 5px; }
+  .hud-pause { width: 34px; height: 34px; padding: 7px; border-width: 2px; }
+  .hud-top-center { top: calc(82px + var(--safe-t)); width: 92vw; gap: 4px; }
+  .hud-district { padding: 4px 8px; font-size: 9px; }
+  .hud-objective { max-width: 90vw; margin-top: 3px; padding: 5px 8px; font-size: 12px; }
+  .hud-player-state { min-height: 12px; font-size: 10px; }
+  .touch-stick { left: calc(12px + var(--safe-l)); bottom: calc(18px + var(--safe-b)); width: clamp(96px, 28vw, 122px); height: clamp(96px, 28vw, 122px); }
+  .touch-actions { right: calc(8px + var(--safe-r)); bottom: calc(14px + var(--safe-b)); width: 140px; grid-template-columns: repeat(2, minmax(60px, 1fr)); gap: 5px; }
+  .touch-btn { min-height: 44px; padding: 4px 3px; font-size: 9px; }
+  .interaction-prompt { bottom: calc(214px + var(--safe-b)); left: 31%; max-width: 59vw; padding: 8px 10px; font-size: 10px; }
 }
 @media (max-width: 740px) {
   .title-block { left: calc(22px + var(--safe-l)); top: 42%; max-width: min(80vw,450px); }
