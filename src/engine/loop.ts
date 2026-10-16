@@ -6,6 +6,8 @@
  * interpolation factor `alpha` (0..1) between the previous and current simulation state.
  */
 export type LoopCallbacks = {
+  /** Sample browser input before simulation advances, including while paused for resume controls. */
+  beforeFrame?: () => void
   /** Advance simulation by exactly one fixed step. */
   step: (stepSeconds: number) => void
   /** Draw the current frame; `alpha` blends the last two simulation states. `frameSeconds` is wall time. */
@@ -39,6 +41,7 @@ export class GameLoop {
       const frameSeconds = Math.min((now - this.last) / 1000, this.maxFrameSeconds)
       this.last = now
       try {
+        this.callbacks.beforeFrame?.()
         if (!this.paused) {
           this.accumulator += frameSeconds
           while (this.accumulator >= this.stepSeconds) {

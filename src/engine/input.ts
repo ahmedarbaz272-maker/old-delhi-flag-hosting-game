@@ -63,7 +63,10 @@ export class Input {
     if (this.method !== 'touch' && document.pointerLockElement !== this.canvas) this.canvas.requestPointerLock?.()?.catch?.(() => undefined)
   }
   unlockPointer(): void { if (document.pointerLockElement) document.exitPointerLock() }
-  setTouchMove(x: number, y: number): void { this.method = 'touch'; this.touchMove.x = x; this.touchMove.y = y }
+  setTouchMove(x: number, y: number): void {
+    this.method = 'touch'; this.touchMove.x = x; this.touchMove.y = y
+    this.refreshMoveVector()
+  }
   addTouchLook(dx: number, dy: number): void { this.method = 'touch'; this.look.x += dx * 0.006; this.look.y += dy * 0.006 }
   setTouchButton(action: Action, down: boolean): void {
     this.method = 'touch'
@@ -91,6 +94,22 @@ export class Input {
       for (const action of now) { this.held_.add(action); if (!this.padPrev.has(action)) this.pressed_.add(action) }
       this.padPrev = now
     }
+    this.applyMoveVector(x, y)
+  }
+  private refreshMoveVector(): void {
+    const has = (codes: string[]) => codes.some(code => this.keys.has(code))
+    let x = (has(MOVE_KEYS.right) ? 1 : 0) - (has(MOVE_KEYS.left) ? 1 : 0)
+    let y = (has(MOVE_KEYS.up) ? 1 : 0) - (has(MOVE_KEYS.down) ? 1 : 0)
+    if (this.touchMove.x !== 0 || this.touchMove.y !== 0) { x = this.touchMove.x; y = this.touchMove.y }
+    const pad = navigator.getGamepads?.().find(p => p && p.connected)
+    if (pad) {
+      const dead = (v: number) => Math.abs(v) < 0.18 ? 0 : v
+      const lx = dead(pad.axes[0] ?? 0), ly = dead(pad.axes[1] ?? 0)
+      if (lx !== 0 || ly !== 0) { x = lx; y = -ly }
+    }
+    this.applyMoveVector(x, y)
+  }
+  private applyMoveVector(x: number, y: number): void {
     const len = Math.hypot(x, y)
     this.move.x = len > 1 ? x / len : x; this.move.y = len > 1 ? y / len : y
   }
@@ -102,6 +121,10 @@ export class Input {
     this.look.x = 0; this.look.y = 0; return out
   }
   endFrame(): void { this.pressed_.clear() }
-  clearHeld(): void { this.keys.clear(); this.touchButtons.clear(); this.touchMove.x = 0; this.touchMove.y = 0; this.held_.clear() }
+  clearHeld(): void {
+    this.keys.clear(); this.touchButtons.clear(); this.touchMove.x = 0; this.touchMove.y = 0
+    this.held_.clear(); this.pressed_.clear(); this.padPrev.clear(); this.look.x = 0; this.look.y = 0
+    this.move.x = 0; this.move.y = 0
+  }
   dispose(): void { for (const off of this.listeners) off(); this.listeners = [] }
 }

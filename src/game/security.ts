@@ -30,6 +30,7 @@ export interface SecurityStatus {
 type GuardRuntime = {
   readonly spawn: GuardSpawn
   readonly root: THREE.Group
+  readonly nameplate?: THREE.Sprite
   readonly route?: GuardRoute
   readonly home: THREE.Vector3
   readonly leash: number
@@ -84,7 +85,11 @@ export class SecuritySystem {
       const root = this.createGuardModel()
       root.name = `security-guard-${spawn.id}`
       root.position.copy(spawn.position)
+      root.userData.displayName = spawn.displayName
+      root.userData.designation = spawn.designation
       root.userData.securityRole = spawn.role
+      const nameplate = this.createNameplate(spawn)
+      if (nameplate) root.add(nameplate)
       root.castShadow = true
       const route = this.routeFor(spawn)
       const routeIndex = route ? this.closestWaypoint(route, spawn.position) : 0
@@ -94,6 +99,7 @@ export class SecuritySystem {
       this.guards.push({
         spawn,
         root,
+        nameplate,
         route,
         home: spawn.position.clone(),
         leash: spawn.role === 'patrol' ? 10 : 4,
@@ -138,6 +144,7 @@ export class SecuritySystem {
 
     for (const guard of this.guards) {
       const detection = this.detect(guard, player, safeSpeed, crouched, sprinting, restricted)
+      if (guard.nameplate) guard.nameplate.visible = this.distanceXZ(guard.root.position, player) <= 32
       if (detection.visible) {
         guard.lastSeen.copy(player)
         guard.lostTime = 0
@@ -167,7 +174,7 @@ export class SecuritySystem {
       ) {
         this.detained = true
         guard.state = 'Detain'
-        this.onDetain(`Detained by ${guard.spawn.id}`)
+        this.onDetain(`Detained by ${guard.spawn.displayName}`)
       }
       if (this.detained) break
     }
@@ -221,6 +228,37 @@ export class SecuritySystem {
     body.castShadow = true
     fallback.add(body)
     return fallback
+  }
+
+  private createNameplate(spawn: GuardSpawn): THREE.Sprite | undefined {
+    if (typeof document === 'undefined') return undefined
+    const canvas = document.createElement('canvas')
+    canvas.width = 512
+    canvas.height = 128
+    const context = canvas.getContext('2d')
+    if (!context) return undefined
+    context.fillStyle = 'rgba(23, 24, 36, 0.9)'
+    context.fillRect(6, 6, 500, 116)
+    context.strokeStyle = '#ffd35c'
+    context.lineWidth = 8
+    context.strokeRect(8, 8, 496, 112)
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    context.fillStyle = '#fff7e8'
+    context.font = '800 44px system-ui, sans-serif'
+    context.fillText(spawn.displayName.toUpperCase(), 256, 48, 470)
+    context.fillStyle = '#7ef9ff'
+    context.font = '800 22px system-ui, sans-serif'
+    context.fillText(spawn.designation, 256, 91, 470)
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.colorSpace = THREE.SRGBColorSpace
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false, alphaTest: 0.02 }))
+    sprite.name = `security-nameplate-${spawn.id}`
+    sprite.userData.displayName = spawn.displayName
+    sprite.position.set(0, 2.45, 0)
+    sprite.scale.set(3.25, 0.82, 1)
+    sprite.renderOrder = 5
+    return sprite
   }
 
   private routeFor(spawn: GuardSpawn): GuardRoute | undefined {

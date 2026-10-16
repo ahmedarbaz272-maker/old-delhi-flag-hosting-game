@@ -21,9 +21,11 @@ export type ObjectiveMarker = {
 
 export type GuardSpawn = {
   id: string
+  displayName: string
+  designation: string
   position: THREE.Vector3
   district: string
-  role: 'patrol' | 'gate' | 'tower'
+  role: 'patrol' | 'gate' | 'tower' | 'detention'
 }
 
 export type GuardRoute = {
@@ -105,6 +107,66 @@ const palette = {
   warning: new THREE.Color('#f2c84b'),
 }
 
+function createSkyDome(): THREE.Group {
+  const sky = new THREE.Group()
+  const sunDirection = new THREE.Vector3(-0.42, 0.58, -0.7).normalize()
+  const material = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false,
+    uniforms: {
+      zenithColor: { value: new THREE.Color('#55b8ed') },
+      horizonColor: { value: new THREE.Color('#f1c58a') },
+      sunColor: { value: new THREE.Color('#fff1c3') },
+      sunDirection: { value: sunDirection },
+    },
+    vertexShader: `
+      varying vec3 vSkyDirection;
+      void main() {
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vSkyDirection = worldPosition.xyz - cameraPosition;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 zenithColor;
+      uniform vec3 horizonColor;
+      uniform vec3 sunColor;
+      uniform vec3 sunDirection;
+      varying vec3 vSkyDirection;
+      void main() {
+        vec3 direction = normalize(vSkyDirection);
+        float height = smoothstep(-0.12, 0.78, direction.y);
+        vec3 color = mix(horizonColor, zenithColor, height);
+        float haze = 1.0 - smoothstep(0.0, 0.32, abs(direction.y));
+        color = mix(color, horizonColor, haze * 0.28);
+        float sunDot = max(dot(direction, normalize(sunDirection)), 0.0);
+        float disc = pow(sunDot, 190.0);
+        float halo = pow(sunDot, 12.0) * 0.18;
+        color = mix(color, sunColor, clamp(disc * 1.3 + halo, 0.0, 0.9));
+        gl_FragColor = vec4(color, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `,
+  })
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(290, 32, 20), material)
+  dome.name = 'procedural-sky-dome'
+  dome.frustumCulled = false
+  dome.renderOrder = -1000
+  sky.add(dome)
+  const sun = new THREE.Mesh(
+    new THREE.SphereGeometry(5.8, 20, 14),
+    new THREE.MeshBasicMaterial({ color: '#fff1c3', toneMapped: false, depthTest: false, depthWrite: false }),
+  )
+  sun.name = 'visible-sky-sun'
+  sun.position.copy(sunDirection).multiplyScalar(220)
+  sun.renderOrder = -999
+  sky.add(sun)
+  return sky
+}
+
 function flat(color: THREE.Color, roughness = 0.82): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.03 })
 }
@@ -135,6 +197,7 @@ export function buildCity(physics: Physics, flagTexture?: THREE.Texture): CityEn
   const scene = new THREE.Scene()
   scene.background = palette.sky.clone()
   scene.fog = new THREE.Fog(palette.haze, 58, 155)
+  scene.add(createSkyDome())
 
   const sun = new THREE.DirectionalLight('#ffe1b6', 2.35)
   sun.position.set(-32, 48, 26)
@@ -470,6 +533,35 @@ export function buildCity(physics: Physics, flagTexture?: THREE.Texture): CityEn
   addBox(gateRoot, new THREE.Vector3(0, 1.5, 0), new THREE.Vector3(gateWidth, 3, 0.46), steelMat)
   for (const x of [-2.6, -1.3, 0, 1.3, 2.6]) addBox(gateRoot, new THREE.Vector3(x, 1.5, -0.28), new THREE.Vector3(0.16, 2.7, 0.16), warningMat)
   scene.add(gateRoot)
+  if (typeof document !== 'undefined') {
+    const signCanvas = document.createElement('canvas')
+    signCanvas.width = 1024
+    signCanvas.height = 192
+    const signContext = signCanvas.getContext('2d')
+    if (signContext) {
+      signContext.fillStyle = '#173f49'
+      signContext.fillRect(0, 0, signCanvas.width, signCanvas.height)
+      signContext.strokeStyle = '#f2c84b'
+      signContext.lineWidth = 10
+      signContext.strokeRect(8, 8, signCanvas.width - 16, signCanvas.height - 16)
+      signContext.textAlign = 'center'
+      signContext.textBaseline = 'middle'
+      signContext.fillStyle = '#fff4d2'
+      signContext.font = '900 72px system-ui, sans-serif'
+      signContext.fillText('DETENTION CENTER', 512, 76)
+      signContext.fillStyle = '#ffd35c'
+      signContext.font = '700 28px system-ui, sans-serif'
+      signContext.fillText('SECURITY PERIMETER  ·  ENTRY CONTROL', 512, 146)
+    }
+    const signTexture = new THREE.CanvasTexture(signCanvas)
+    signTexture.colorSpace = THREE.SRGBColorSpace
+    const signPosition = new THREE.Vector3(secureCenter.x - 7, 4.08, secureCenter.z - 13.23)
+    addBox(scene, new THREE.Vector3(signPosition.x, 4.08, secureCenter.z - 13.12), new THREE.Vector3(8.55, 1.28, 0.18), flat(new THREE.Color('#173f49')))
+    const sign = addMesh(scene, new THREE.PlaneGeometry(8.25, 1.08), new THREE.MeshBasicMaterial({ map: signTexture, side: THREE.DoubleSide, toneMapped: false }), signPosition)
+    sign.name = 'detention-center-sign'
+    sign.rotation.y = Math.PI
+    sign.renderOrder = 2
+  }
   const gate: GateData = {
     root: gateRoot,
     center: gateCenter.clone(),
@@ -516,12 +608,14 @@ export function buildCity(physics: Physics, flagTexture?: THREE.Texture): CityEn
   // Watchtower: four real stepped flights and landings wind around an open shaft to the top platform.
   const tower = new THREE.Group()
   tower.name = 'watchtower'
-  tower.position.copy(secureCenter)
+  // Offset it deeper and east within the secured compound so the entrance sign and gate remain legible.
+  const towerCenter = secureCenter.clone().add(new THREE.Vector3(6, 0, 3))
+  tower.position.copy(towerCenter)
   const towerHeight = 10.2
   for (const x of [-1.55, 1.55]) for (const z of [-1.55, 1.55]) addCylinder(tower, new THREE.Vector3(x, towerHeight / 2, z), 0.18, towerHeight, sandstoneMaterial(1), true)
   addBox(tower, new THREE.Vector3(0, 4.2, -1.75), new THREE.Vector3(3.6, 0.14, 0.14), tealMat)
   addBox(tower, new THREE.Vector3(0, 7.3, 1.75), new THREE.Vector3(3.6, 0.14, 0.14), coralMat)
-  const platformCenter = new THREE.Vector3(secureCenter.x, towerHeight, secureCenter.z)
+  const platformCenter = new THREE.Vector3(towerCenter.x, towerHeight, towerCenter.z)
   // Three solid deck sections frame an open stairwell notch; the final flight can rise through
   // the opening and meet the top surface instead of colliding with the platform's vertical edge.
   const platformMaterial = sandstoneMaterial(0)
@@ -587,7 +681,7 @@ export function buildCity(physics: Physics, flagTexture?: THREE.Texture): CityEn
   pole.castShadow = true
   const clothHeight = 1.45
   const clothWidth = clothHeight * (2350 / 1824)
-  const clothMaterial = new THREE.MeshStandardMaterial({ color: '#ffffff', map: flagTexture, roughness: 0.78, side: THREE.DoubleSide, transparent: true, alphaTest: 0.025 })
+  const clothMaterial = new THREE.MeshStandardMaterial({ color: '#ffffff', ...(flagTexture ? { map: flagTexture } : {}), roughness: 0.78, side: THREE.DoubleSide, transparent: true, alphaTest: 0.025 })
   const cloth = addMesh(tower, new THREE.PlaneGeometry(clothWidth, clothHeight, 24, 12), clothMaterial, new THREE.Vector3(clothWidth / 2, 0.7, 0))
   cloth.name = 'gyanu-flag-cloth'
   cloth.userData.startY = 0.7
@@ -604,7 +698,7 @@ export function buildCity(physics: Physics, flagTexture?: THREE.Texture): CityEn
   }
   const towerData: TowerData = {
     root: tower,
-    center: secureCenter.clone(),
+    center: towerCenter.clone(),
     height: towerHeight,
     platformCenter: platformCenter.clone(),
     platformRadius: 5.0,
@@ -613,10 +707,13 @@ export function buildCity(physics: Physics, flagTexture?: THREE.Texture): CityEn
   }
 
   const guardSpawns: GuardSpawn[] = [
-    { id: 'gate-west', position: new THREE.Vector3(secureCenter.x - 7.2, 0.95, secureCenter.z - 10.2), district: 'assembly', role: 'gate' },
-    { id: 'gate-east', position: new THREE.Vector3(secureCenter.x + 7.2, 0.95, secureCenter.z - 10.2), district: 'assembly', role: 'gate' },
-    { id: 'tower-watch', position: new THREE.Vector3(secureCenter.x + 3.4, 0.95, secureCenter.z + 3.4), district: 'assembly', role: 'tower' },
-    { id: 'market-patrol', position: new THREE.Vector3(hubPoints[2]?.x ?? 0, 0.95, hubPoints[2]?.z ?? 0), district: 'market', role: 'patrol' },
+    { id: 'gate-west', displayName: 'Asha Rao', designation: 'GATE WARDEN', position: new THREE.Vector3(secureCenter.x - 7.2, 0.95, secureCenter.z - 10.2), district: 'detention center', role: 'gate' },
+    { id: 'gate-east', displayName: 'Imran Malik', designation: 'GATE WARDEN', position: new THREE.Vector3(secureCenter.x + 7.2, 0.95, secureCenter.z - 10.2), district: 'detention center', role: 'gate' },
+    { id: 'tower-watch', displayName: 'Sana Dutta', designation: 'TOWER WATCH', position: new THREE.Vector3(secureCenter.x + 3.4, 0.95, secureCenter.z + 3.4), district: 'detention center', role: 'tower' },
+    { id: 'market-patrol', displayName: 'Kiran Sen', designation: 'MARKET PATROL', position: new THREE.Vector3(hubPoints[2]?.x ?? 0, 0.95, hubPoints[2]?.z ?? 0), district: 'market', role: 'patrol' },
+    { id: 'detention-watch', displayName: 'Vikram Bedi', designation: 'DETENTION WATCH', position: new THREE.Vector3(secureCenter.x - 5.2, 0.95, secureCenter.z + 4.2), district: 'detention center', role: 'detention' },
+    { id: 'yard-watch', displayName: 'Nisha Qureshi', designation: 'YARD WATCH', position: new THREE.Vector3(secureCenter.x + 5.2, 0.95, secureCenter.z + 4.2), district: 'detention center', role: 'detention' },
+    { id: 'perimeter-patrol', displayName: 'Arjun Das', designation: 'PERIMETER PATROL', position: new THREE.Vector3(secureCenter.x, 0.95, secureCenter.z + 10), district: 'detention center', role: 'patrol' },
   ]
   const guardRoutes: GuardRoute[] = [
     {
