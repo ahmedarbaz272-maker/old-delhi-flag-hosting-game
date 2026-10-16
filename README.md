@@ -68,7 +68,7 @@ The initialized Manus workspace also retains its managed asset-restore commands 
 
 ## GitHub Pages deployment
 
-The project repository is [`AuraKareSollutions/old-delhi-flag-hosting-game`](https://github.com/AuraKareSollutions/old-delhi-flag-hosting-game). The GitHub Actions workflow builds the production Vite output and deploys the `dist/` directory to GitHub Pages. Vite uses relative asset URLs (`base: './'`) so models, the exact flag texture, CSS, and scripts load beneath the repository subpath. HTTPS is supplied by GitHub Pages.
+The project repository is [`ahmedarbaz272-maker/old-delhi-flag-hosting-game`](https://github.com/ahmedarbaz272-maker/old-delhi-flag-hosting-game). The GitHub Actions workflow builds the production Vite output and deploys the `dist/` directory to GitHub Pages. Vite uses relative asset URLs (`base: './'`) so models, the exact flag texture, CSS, and scripts load beneath the repository subpath. HTTPS is supplied by GitHub Pages.
 
 For a fork, update the repository-specific canonical URL in `index.html` and workflow metadata, then enable **Settings → Pages → GitHub Actions**. GLB models and the supplied flag are served as static files; the build does not need a custom MIME configuration on GitHub Pages.
 
