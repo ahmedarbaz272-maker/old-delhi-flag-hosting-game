@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "title": "Gyanu — The Flag Hosting Mission",
+  "description": "Gather 16 city districts, evade patrols, climb the watchtower, and host the supplied Gyanu flag in this colorful 3D city mission.",
+  "defaultCaptions": {
+    "x": "Explore a vibrant city, gather all 16 districts, evade security, climb the watchtower, and host the supplied flag. Play Gyanu — The Flag Hosting Mission.",
+    "facebook": "A colorful 3D city mission: gather 16 districts, evade patrols, climb the tower, and host the Gyanu flag.",
+    "reddit": "Gyanu — The Flag Hosting Mission: a free single-player 3D city exploration and stealth game. Gather 16 districts, climb the watchtower, and host the supplied flag.",
+    "discord": "Play Gyanu — explore the city, gather all 16 districts, evade patrols, and host the flag atop the watchtower."
+  },
+  "assets": {
+    "favicon": "assets/share/favicon.png"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "version": 2,
+  "groups": {
+    "characters": {
+      "name": "City Characters",
+      "order": 10
+    },
+    "city-architecture": {
+      "name": "City Architecture",
+      "order": 20
+    },
+    "game-identity": {
+      "name": "Game Identity",
+      "order": 30
+    }
+  },
+  "bundles": {},
+  "assets": {
+    "assets/models/gyanu-bazaar-building.glb": {
+      "path": "/manus-storage/game/sha256/1f077ba8f58c7073e4978c5c0cbe7ce590662be7f2ef43033b7bb3e089c4b967.glb",
+      "sha256": "sha256:1f077ba8f58c7073e4978c5c0cbe7ce590662be7f2ef43033b7bb3e089c4b967",
+      "size": 3842104,
+      "assetType": "model",
+      "groupId": "city-architecture"
+    },
+    "assets/models/gyanu-gatherer.glb": {
+      "path": "/manus-storage/game/sha256/0f3c271d3e0077a32841ba2c93902bf138a7a97519551d1426ac6f9064141cab.glb",
+      "sha256": "sha256:0f3c271d3e0077a32841ba2c93902bf138a7a97519551d1426ac6f9064141cab",
+      "size": 3551468,
+      "assetType": "model",
+      "groupId": "characters"
+    },
+    "assets/models/gyanu-guard.glb": {
+      "path": "/manus-storage/game/sha256/17f1b5c50b933a23ce04ffe50ef29ba583f83644340152e39f76e7897fcfa025.glb",
+      "sha256": "sha256:17f1b5c50b933a23ce04ffe50ef29ba583f83644340152e39f76e7897fcfa025",
+      "size": 3243224,
+      "assetType": "model",
+      "groupId": "characters"
+    },
+    "assets/models/gyanu-runner.glb": {
+      "path": "/manus-storage/game/sha256/e020ec5274f9bbc2af9a206dcc1928d731fa3bf584953385267765ff1a107718.glb",
+      "sha256": "sha256:e020ec5274f9bbc2af9a206dcc1928d731fa3bf584953385267765ff1a107718",
+      "size": 3511324,
+      "assetType": "model",
+      "groupId": "characters"
+    },
+    "assets/share/favicon.png": {
+      "path": "/manus-storage/game/sha256/f71bc6d9fe4a37017b1c27a2b05d976b728e5e049618614cc810eab0ba77e90b.png",
+      "sha256": "sha256:f71bc6d9fe4a37017b1c27a2b05d976b728e5e049618614cc810eab0ba77e90b",
+      "size": 15774,
+      "assetType": "image",
+      "groupId": "game-identity"
+    }
+  }
+}

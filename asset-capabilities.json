@@ -1,0 +1,4 @@
+{
+  "engines": ["godot", "threejs"],
+  "manifestVersion": 2
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+shots/
+/.manus-webdev/preview-identity.json
+# Assets restored from assets.lock.json
+/assets/models/gyanu-bazaar-building.glb
+/assets/models/gyanu-gatherer.glb
+/assets/models/gyanu-guard.glb
+/assets/models/gyanu-runner.glb
+# Assets restored from assets.lock.json
